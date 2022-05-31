@@ -1,0 +1,105 @@
+---
+title: "EDA_Report_Youtube"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r, include=FALSE}
+library(flexdashboard)
+library(RSelenium)
+library(dplyr)
+library(stringr)
+library(rvest)
+library(knitr)
+library(XML)
+library(writexl)
+library(readr)
+library(httr)
+library(kableExtra)
+
+
+rD <- rsDriver(port=3132L, "firefox")
+remDr <- rD$client
+
+URL <- "https://www.youtube.com/"
+remDr$navigate(URL)
+Sys.sleep(1)
+
+element <- remDr$findElement("css", "input#search")
+element$sendKeysToElement(list("투자자산운용사 합격후기"))
+
+#search_btn
+pattern <- "#search-icon-legacy"
+element <- remDr$findElement(using = "css", pattern)
+element$clickElement()
+Sys.sleep(1)
+
+```
+
+#원하는 정보를 뽑기 위해 새로운 셀레니움 설정 
+##그냥 바로 정보를 뽑게 될 경우 34가지의 기본 동영상 정보가 수집된다.
+
+```{r, include=FALSE}
+rD <- rsDriver(port=3862L, "firefox")
+remDr <- rD$client
+
+
+URL1 <- "https://www.youtube.com/results?search_query=%ED%88%AC%EC%9E%90%EC%9E%90%EC%82%B0%EC%9A%B4%EC%9A%A9%EC%82%AC+%ED%95%A9%EA%B2%A9%ED%9B%84%EA%B8%B0&sp=EgIQAQ%253D%253D"
+remDr$navigate(URL1)
+Sys.sleep(3)
+
+for (i in 1:32) {
+  element <- remDr$findElement("css", "body")
+  element$sendKeysToElement(list(key = "page_down"))
+  Sys.sleep(2)
+  
+}
+
+  txt <- remDr$getPageSource()[[1]]
+  
+  res <- read_html(txt)
+  Sys.sleep(1)
+  
+  title <- res %>%
+    html_nodes("#video-title") %>%
+    html_text() %>% 
+    str_remove("\n") %>% 
+    str_trim()
+  
+  link <- res %>%
+    html_nodes("#video-title") %>%
+    html_attr("href") %>%
+    str_c("https://www.youtube.com", .)
+  
+  date <- res %>%
+    html_nodes("#metadata-line > span:nth-child(2)") %>%
+    html_text() %>% 
+    str_remove("스트리밍 시간: ")
+  
+  length <- res %>%
+    html_nodes("#overlays > ytd-thumbnail-overlay-time-status-renderer > span") %>%
+    html_text()
+  
+  View <- res %>%
+    html_nodes("#metadata-line > span:nth-child(1)") %>%
+    html_text() 
+  
+  tbl <- cbind(title, date, length, link, View) %>%
+    as.data.frame(stringsAsFactors=FALSE)
+  
+df <- tbl %>%
+  mutate(title.link = cell_spec(title, "html", link = link)) %>%
+  select(date, title.link, length, View)
+
+names(df) <- c("title","date","length","View")
+```
+
+```{r}
+df %>% head(15) %>%
+  kable(format="html", escape=FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+
+```
+
