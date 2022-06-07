@@ -38,10 +38,11 @@ Sys.sleep(1)
 
 ```
 
+```{r, include=FALSE}
+
 #원하는 정보를 뽑기 위해 새로운 셀레니움 설정 
 ##그냥 바로 정보를 뽑게 될 경우 34가지의 기본 동영상 정보가 수집된다.
 
-```{r, include=FALSE}
 rD <- rsDriver(port=3862L, "firefox")
 remDr <- rD$client
 
@@ -97,7 +98,7 @@ names(df) <- c("title","date","length","View")
 ```
 
 ```{r}
-df %>% head(15) %>%
+df %>% 
   kable(format="html", escape=FALSE) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 
