@@ -127,7 +127,8 @@ remDr$switchToFrame(NULL)
 txt <- remDr$getPageSource()[[1]]
 res <- read_html(txt)
 
-##다른 블로그에서도 좋아요, 댓글 수 수집하기 
+##동일한 방법으로 iframe이 있는 다른 블로그에서도 좋아요, 댓글 수 수집할 수 있음
+##그러나 블로그마다 설정값이 다르기 때문에(iframe이 없는 블로그도 있음) iframe 코드를 입력해서 다수의 블로그에서 좋아요, 댓글 수를 한꺼번에 수집하기는 어려움 
 
 tab <- cbind(title, date, link, id, comment, like) %>% as_tibble() 
 tab
@@ -140,7 +141,7 @@ df <- tab %>%
 
 names(df) <- c("Title","Date", "id", "comment","like")
 
-tab %>% head(15) %>%
+tab %>% 
   kable(format="html", escape=FALSE) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 
